@@ -1,0 +1,37 @@
+class SqlParser
+
+rule
+  query : select_stmt from_stmt where_stmt { result = val.values_at(1, 2, 0).flatten }
+        | select_stmt from_stmt            { result = val.values_at(1, 0).flatten }
+
+  select_stmt : SELECT col_list { result = Projection.new(val[1]) }
+
+  col_list : '*'               { result = val[0] }
+           | NAME ',' col_list { result = [val[0]] + val[2] }
+           | NAME              { result = val }
+
+  from_stmt : FROM table_list { result = val[1] }
+
+  table_list : NAME ',' table_list { result = val[2] << CartesianProduct.new(val[0]) }
+             | NAME                { result = [TableScan.new(val[0])] }
+
+  where_stmt : WHERE disjunction { result = Selection.new(val[1]) }
+
+  disjunction : conjunction OR disjunction { result = [:or, val[0], val[2]] }
+              | conjunction                   { result = val[0] }
+
+  conjunction : relation AND conjunction { result = [:and, val[0], val[2]] }
+              | relation                    { result = val[0] }
+
+  relation : NAME '=' VALUE { result = [:"=", val[0], val[2]] }
+end
+
+---- header
+
+require_relative 'lexer'
+
+---- inner
+
+def parse(input)
+  scan_str(input)
+end
