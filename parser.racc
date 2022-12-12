@@ -7,6 +7,7 @@ rule
   select_stmt : SELECT col_list { result = Projection.new(val[1]) }
 
   col_list : '*'               { result = val[0] }
+           | NAME '(' '*' ')'  { result = val[0].to_sym }
            | NAME ',' col_list { result = [val[0]] + val[2] }
            | NAME              { result = val }
 

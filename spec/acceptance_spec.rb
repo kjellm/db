@@ -55,4 +55,9 @@ describe Db do
        [3, 3, 3]]
     )
   end
+
+  it do
+    assert_query("SELECT count(*) FROM t", %I[count], [[3]])
+  end
+
 end

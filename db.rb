@@ -137,13 +137,24 @@ Projection = Struct.new(:columns) do
   def call(res, res_schema)
     return [res, res_schema] if columns == '*'
 
-    column_indices = res_schema.map.with_index { |c, i| i if columns.include?(c) }.compact
-    res.map! { |row| row.values_at(*column_indices) }
-    [res, columns]
+    if columns == :count
+      [[[res.length]], [:count]]
+    else
+      column_indices = res_schema.map.with_index { |c, i| i if columns.include?(c) }.compact
+      res.map! { |row| row.values_at(*column_indices) }
+      [res, columns]
+    end
   end
 
   def cost(rows)
-    [columns == '*' ? 0 : rows, rows]
+    case columns
+    when '*'
+      [ 0, rows ]
+    when :count
+      [ rows, 1 ]
+    else
+      [rows, rows]
+    end
   end
 
   def inspect
