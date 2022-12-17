@@ -8,6 +8,7 @@ rule
   (?i:where)    { [:WHERE, text] }
   (?i:or)       { [:OR, text] }
   (?i:and)      { [:AND, text] }
+  (?i:count|max|min) { [:AGGREGATE, text.to_sym] }
   \d+           { [:VALUE, Integer(text, 10)] }
   \w+           { [:NAME, text.to_sym] }
   .             { [text, text] }

@@ -6,10 +6,11 @@ rule
 
   select_stmt : SELECT col_list { result = Projection.new(val[1]) }
 
-  col_list : '*'               { result = val[0] }
-           | NAME '(' '*' ')'  { result = val[0].to_sym }
-           | NAME ',' col_list { result = [val[0]] + val[2] }
-           | NAME              { result = val }
+  col_list : '*'                     { result = val[0] }
+           | AGGREGATE '(' '*' ')'   { result = Aggregate.new(val[0], val[2]) }
+           | AGGREGATE '(' NAME ')'  { result = Aggregate.new(val[0], val[2]) }
+           | NAME ',' col_list       { result = [val[0]] + val[2] }
+           | NAME                    { result = val }
 
   from_stmt : FROM table_list { result = val[1] }
 

@@ -137,8 +137,9 @@ Projection = Struct.new(:columns) do
   def call(res, res_schema)
     return [res, res_schema] if columns == '*'
 
-    if columns == :count
-      [[[res.length]], [:count]]
+    case columns
+    when Aggregate
+      calculate_aggregate(columns, res, res_schema)
     else
       column_indices = res_schema.map.with_index { |c, i| i if columns.include?(c) }.compact
       res.map! { |row| row.values_at(*column_indices) }
@@ -150,7 +151,7 @@ Projection = Struct.new(:columns) do
     case columns
     when '*'
       [ 0, rows ]
-    when :count
+    when Aggregate
       [ rows, 1 ]
     else
       [rows, rows]
@@ -161,7 +162,25 @@ Projection = Struct.new(:columns) do
     "Projection(#{columns})"
   end
 
+  private
+
+  def calculate_aggregate(aggr, res, res_schema)
+    case aggr.name
+    when :count
+      raise unless aggr.args == '*'
+      [[[res.length]], [:count]]
+    when :max, :min
+      raise if aggr.args == '*'
+      idx = res_schema.index(aggr.args)
+      val =  res.send(aggr.name) {|a,b| a[idx] <=> b[idx]}[idx]
+      [[[val]], [aggr.name]]
+    else
+      raise
+    end
+  end
 end
+
+Aggregate = Struct.new(:name, :args)
 
 Condition = Struct.new(:sexpr) do
 

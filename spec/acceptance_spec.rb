@@ -60,4 +60,12 @@ describe Db do
     assert_query("SELECT count(*) FROM t", %I[count], [[3]])
   end
 
+  it do
+    assert_query("SELECT max(a) FROM r", %I[max], [[3]])
+  end
+
+  it do
+    assert_query("SELECT min(a) FROM r", %I[min], [[1]])
+  end
+
 end
